@@ -16,8 +16,8 @@ copy_sh_and_c_files () {
     
     echo "Moving files (.sh and .c) from $source_path to $dest_path"
     
-    cp "$(echo $source_path/*.sh)" "$dest_path"
-    cp "$(echo $source_path/*.c)" "$dest_path"
+    cp $source_path/*.sh $dest_path
+    cp $source_path/*.c $dest_path
 }
 
 PS3='Please enter your choice: '
