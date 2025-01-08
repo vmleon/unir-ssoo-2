@@ -6,7 +6,7 @@ El script creado contiene un menú con un `do case` para seleccionar la opción 
 
 Funcionalidades que requieran más de una línea, están externalizadas en una función de bash. Por ejemplo, `copy_sh_and_c_files`.
 
-> Comprueba que tools.sh tiene permisos de ejecución con `ls -l scripts/tools.sh.
+> Comprueba que `tool.sh` tiene permisos de ejecución con `ls -l scripts/tool.sh.
 >
 > Si no es así, da permisos con este comando:
 >
@@ -16,7 +16,9 @@ Funcionalidades que requieran más de una línea, están externalizadas en una f
 
 ### Compatibilidad
 
-La compatibilidad del script ha sido probada en MacOS Sequoia 15.1.1 (24B91) (localmente) y en un Ubuntu 25.04 ejecutado como container con [Podman](https://podman.io/), open source container engine creado por RedHat. Podman tiene funcionalidad equivalente a Docker, con un `alias docker=podman` la migración sería transparente para el usuario.
+La compatibilidad del script ha sido probada en MacOS Sequoia 15.1.1 (24B91) (localmente) y en un Ubuntu 25.04 ejecutado como container con [Podman](https://podman.io/), open source container engine creado por RedHat. Podman tiene funcionalidad equivalente a Docker, con un `alias docker=podman` la migración de Docker a Podman sería transparente para el usuario.
+
+En algunas ocasiones, explicadas en esos momentos, ejecutamos los comandos en Ubuntu 24.04 en una máquina virtual.
 
 > Con Docker no es necesario. Para usar Podman, a diferencia de Docker, necesitamos crear y arrancar la máquina virtual donde se ejecuta el container engine.
 > Si no tienes máquina virtual, ejecuta `podman machine init` para crear/iniciar una.
@@ -51,7 +53,8 @@ podman build -t ssoo-ubuntu .
 - `--rm` borra el contenedor cuando la ejecución termina.
 - `--name ubuntu` le da nombre al contenedor para hacer referencia posteriormente en vez de asignarle un nombre por defecto.
 - `-it` envía la entrada y salida del contenedor a standard output e input de nuestra terminal.
-- `-v $(pwd)/scripts/:/tools` mapea el directorio `scripts` del repositorio con un directorio `/tools` dentro del contenedor. Así tenemos acceso a `/scripts/tools.sh` en el path `/tools/tool.sh` dentro del contenedor.
+- `-v $(pwd)/scripts/:/tools` mapea el directorio `scripts` del repositorio con un directorio `/tools` dentro del contenedor. Así tenemos acceso a `/scripts/tool.sh` en el path `/tools/tool.sh` dentro del contenedor.
+- `-v $(pwd)/test/:/test` mapea el directorio `test` del repositorio con un directorio `/test` dentro del contenedor. Así tenemos acceso a ficheros de prueba para algunas de las funcionalidades del script.
 - `localhost/tools:latest` es el nombre de la imagen Ubuntu 25.04 que hemos creado en los pasos anteriores.
 - `/bin/bash` nos abre una terminal dentro del contenedor.
 
@@ -76,7 +79,7 @@ podman run \
 
 ![Screenshot Option 1](images/ubuntu-opcion-1.png)
 
-Debido al overlay que hace podman del disco y el mapeo de volúmenes como `/test`, vemos que el directorio `/` tiene 100G, 29G usados y 72G libres, lo que hace un 29% de uso de disco. Esta memoria es virtual asignada a la máquina de Podman. Y luego que `/test` tiene 461G con un uso del 98%. Un momento estupendo para limpiar disco en el MacOS que contiene Podman :)
+Debido al overlay que hace Podman del disco y el mapeo de volúmenes como `/test`, vemos que el directorio `/` tiene 100G, 29G usados y 72G libres, lo que hace un 29% de uso de disco. Esta memoria es virtual asignada a la máquina de Podman. Y luego que `/test` tiene 461G con un uso del 98%. Un momento estupendo para limpiar disco en el MacOS que contiene Podman :)
 
 ### Ejercicio 2: Obtener el tamaño ocupado por un determinado directorio y sus ficheros y subdirectorios
 
@@ -88,9 +91,12 @@ Debido al overlay que hace podman del disco y el mapeo de volúmenes como `/test
 
 ![Screenshot Option 2](images/ubuntu-opcion-2.png)
 
+Usando `du -sh $(realpath $1)` podemos sumar el tamaño de los ficheros dentro de un directorio con `-s` y el resultado que sea fácil de leer con `-h`.
+
 ### Ejercicio 3: Obtener el uso del procesador
 
-> On ubuntu, container image, install sysstat:
+> Si no estas usando la imagen que puedes hacer con el `Containerfile` recuerda instalar `sysstat`
+>
 > Update repositories: `apt update -y`
 > Install package: `apt install -y sysstat`
 
@@ -124,9 +130,9 @@ El comando `iostat -c` devuelve información sobre el sistema, en este caso un k
 
 ![Screenshot Option 4](images/ubuntu-opcion-4.png)
 
-Ejecutando el comando en el contenedor de Ubuntu porque estamos usando el comando `w` que según la documentación oficial con `man w` _Show who is logged on and what they are doing_. Y `logged` nos da la clave del resultado. Containers son procesos usando `cgroup` y `namespaces` del Kernel de Linux. Y cuando ejecutamos el proceso bash, no estamos haciendo logging en la máquina, sino ejecutando ese proceso.
+La opción 4 no devuelve información relevante porque estamos usando el comando `w` que según la documentación oficial con `man w` _Show who is logged on and what they are doing_. Y `logged` nos da la clave del resultado inesperado. Contenedores son procesos usando `cgroup` y `namespaces` del Kernel de Linux. Y cuando ejecutamos el proceso bash, no estamos haciendo logging en la máquina, sino ejecutando ese proceso que ejecuta bash.
 
-Para confirmar esta hipótesis, en una máquina virtual Ubuntu 24.04 en Parallels (un hypervisor para MacOS) nos da un valor más acorde, porque en este caso sí estás logged dentro de la máquina.
+Para confirmar esta hipótesis, en una máquina virtual Ubuntu 24.04 en [Parallels](https://www.parallels.com/) (un hypervisor para MacOS) nos da un valor más acorde, porque en este caso sí estás logged dentro de la máquina.
 
 Veámoslo en el pantallazo a continuación:
 
